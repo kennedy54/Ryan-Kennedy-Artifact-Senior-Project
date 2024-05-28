@@ -1,0 +1,33 @@
+-- Create a temporary table to hold the original data
+DROP TABLE IF EXISTS Census_Tract_Data;
+CREATE TEMPORARY TABLE Census_Tract_Data (
+    id INT PRIMARY KEY,
+    combined_data VARCHAR(500) -- Assuming a maximum length for the combined data
+);
+
+.separator ","
+
+.import data/Census_Tract_Data.csv Census_Tract_Data
+
+
+-- Create a new table to hold the split data
+DROP TABLE IF EXISTS SplitData;
+CREATE TABLE SplitData (
+    id INT PRIMARY KEY,
+    independent_variable VARCHAR(500),
+    value VARCHAR(500)
+);
+
+-- Split the combined data and insert into the new table
+INSERT INTO SplitData (id, independent_variable, value)
+SELECT 
+    id,
+    SUBSTR(combined_data, 1, INSTR(combined_data, ',') - 1) AS independent_variable,
+    SUBSTR(combined_data, INSTR(combined_data, ',') + 1) AS value
+FROM Census_Tract_Data;
+
+-- Display the split data
+SELECT * FROM SplitData;
+
+
+cat db_build.txt | sqlite3 db_build.sqlite3
